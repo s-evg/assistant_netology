@@ -1,4 +1,4 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 
 import os
@@ -10,16 +10,14 @@ from contextlib import suppress
 from aiogram.utils.exceptions import (
     MessageCantBeDeleted,
     MessageToDeleteNotFound
-    )
-
+)
+import questions
 
 logging.basicConfig(level=logging.INFO)
 
-
 TOKEN = os.getenv("TOKEN")
 
-
-bot = Bot(TOKEN, parse_mode=types.ParseMode.MARKDOWN)
+bot = Bot(TOKEN)
 dp = Dispatcher(bot)
 
 
@@ -50,6 +48,23 @@ async def on_user_joined(message: types.Message):
         await message.delete()
 
 
+# Проверка новых вопросов в админке PYFREE
+@dp.message_handler(commands=["quest"])
+async def quest(message: types.Message):
+    chat_id = str(message.chat.id)
+    id = os.getenv("CHAT_ID")
+    # print(f"CHAT_ID ===>>> {chat_id}\n{type(chat_id)}")
+    # print(f"ID ===>>> {id}\n{type(id)}")
+    if chat_id == id:
+        await message.reply("Смотрю вопросы...")
+        quests = questions.quest()
+        await message.answer("\n".join(quests), parse_mode=types.ParseMode.MARKDOWN)
+    else:
+        msg = await message.answer("В этом чате вопрос не доступен.")
+        await message.delete()
+        asyncio.create_task(delete_message(msg))
+
+
 # Удалялка голосовых сообщений
 @dp.message_handler(content_types=types.ContentTypes.VOICE)
 async def del_voice(message: types.Message):
@@ -60,12 +75,21 @@ async def del_voice(message: types.Message):
     # await message.delete()
 
 
+# Удалялка видео сообщений
+@dp.message_handler(content_types=types.ContentTypes.VIDEO_NOTE)
+async def del_voice(message: types.Message):
+    print(f"VOICE ===>>> {message}")
+    msg = await message.answer(f"{message.from_user.first_name}!\nПожалуйста, без видосиков 😊\nСпасибо!")
+    await message.delete()
+    asyncio.create_task(delete_message(msg))
+    # await message.delete()
+
+
 # Проверка логики тестовых команд
 @dp.message_handler(commands=['test'])
 async def start(message: types.message):
     msg = await message.answer('Тестовое сообщение')
     asyncio.create_task(delete_message(msg))
-
 
 
 async def process_event(event, dp: Dispatcher):
