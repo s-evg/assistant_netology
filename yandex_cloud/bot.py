@@ -53,8 +53,6 @@ async def on_user_joined(message: types.Message):
 async def quest(message: types.Message):
     chat_id = str(message.chat.id)
     id = os.getenv("CHAT_ID")
-    # print(f"CHAT_ID ===>>> {chat_id}\n{type(chat_id)}")
-    # print(f"ID ===>>> {id}\n{type(id)}")
     if chat_id == id:
         await message.reply("Смотрю вопросы...")
         quests = questions.quest()
