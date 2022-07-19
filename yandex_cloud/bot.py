@@ -12,6 +12,7 @@ from aiogram.utils.exceptions import (
     MessageToDeleteNotFound
 )
 import questions
+import numemoji
 
 logging.basicConfig(level=logging.INFO)
 
@@ -52,11 +53,18 @@ async def on_user_joined(message: types.Message):
 @dp.message_handler(commands=["quest"])
 async def quest(message: types.Message):
     chat_id = str(message.chat.id)
-    id = os.getenv("CHAT_ID")
-    if chat_id == id:
+    id_ = os.getenv("CHAT_ID")
+    if chat_id == id_:
         await message.reply("Смотрю вопросы...")
         quests = questions.quest()
-        await message.answer("\n".join(quests), parse_mode=types.ParseMode.MARKDOWN)
+        print(f"QUESTS {quests}\n{len(quests)}")
+        amount_quests = len(quests)
+        if amount_quests > 0:
+            emoji = numemoji.convert(amount_quests)
+            amount_quests = f"**Есть** {emoji} **неотвеченых вопросов**‼️\n\n"
+            await message.answer(amount_quests + "\n".join(quests), parse_mode=types.ParseMode.MARKDOWN)
+        else:
+            await message.answer("Новых вопросов нет ✅")
     else:
         msg = await message.answer("В этом чате вопрос не доступен.")
         await message.delete()
